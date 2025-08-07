@@ -1,6 +1,6 @@
 ﻿namespace TestTask.Service;
 
-public class FullNames
+public abstract class FullNames
 {
     public readonly static string[] FirstNames =
     [

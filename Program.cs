@@ -1,40 +1,22 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using TestTask.Model;
 using TestTask.Service;
 
 namespace TestTask;
 
 public static class Program
 {
-    
+
     private const string? ConnectionString = "";
 
     public static async Task Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
-        builder.Services.Configure<GeneratorSettings>(
-            builder.Configuration.GetSection("GeneratorSettings"));
-        
-        builder.Services.AddTransient<RandomGeneratorFactory>();
-        builder.Services.AddTransient<CustomGeneratorFactory>();
-        builder.Services.AddTransient<IEmpGeneratorFactory>(sp =>
-        {
-            var settings = sp.GetRequiredService<IOptions<GeneratorSettings>>().Value;
-
-            return settings.GeneratorType switch
-            {
-                GeneratorType.Normal => sp.GetRequiredService<RandomGeneratorFactory>(),
-                GeneratorType.Custom => new CustomGeneratorFactory(settings.Gender, settings.FirstChar),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        });
-
-        builder.Services.AddTransient<EmpGenerate>();
         builder.Services.AddDbContextFactory<AppDbContext>(s => s.UseNpgsql(ConnectionString));
 
         var host = builder.Build();
@@ -71,7 +53,6 @@ public static class Program
         var splitName = rest[0].Split(" ");
         var employee = new Employee
         {
-            /*Id = dbContext.Employees.Max(e => e.Id),*/
             Name = splitName[0],
             Lastname = splitName[1],
             Surname = splitName[2],
@@ -83,33 +64,48 @@ public static class Program
 
     private static async Task Task3(IServiceProvider provider)
     {
+        var employeeRepository = provider.GetRequiredService<IEmployeeRepository>();
+        var request = await employeeRepository.GetDistinctEmployeesAsync();
+
+        await foreach (var employee in request)
+        {
+            Console.WriteLine($"{employee.Name}  {employee.Lastname} {employee.Surname}" +
+                              $" {employee.Birthdate}" +
+                              $" {employee.Gender}" +
+                              $" {employee.GetAge()}");
+        }
+    }
+
+    private static async Task Task4(IServiceProvider provider)
+    {
         var contextFactory = provider.GetRequiredService<IDbContextFactory<AppDbContext>>();
 
         await using var dbContext = await contextFactory.CreateDbContextAsync();
 
-        foreach (var employee in dbContext.Employees
-                     .DistinctBy(e => new
-                     {
-                         e.Name, e.Lastname, e.Surname
-                     })
-                     .OrderBy(e => e.Lastname)
-                     .ThenBy(e => e.Name)
-                     .ThenBy(e => e.Surname))
+        var generators = new EmpGenerators();
+        var employees = Enumerable.Range(0, 1000000).Select(_ => generators.Generate());
+        var employeesCustom = Enumerable.Range(0, 100).Select(_ => generators.GenerateCustom(Gender.Male, 'F'));
+        await dbContext.InsertEmployee(employees.Concat(employeesCustom));
+    }
+
+    private static async Task Task5(IServiceProvider provider)
+    {
+        Stopwatch stopWatch = new Stopwatch();
+        var employeeRepository = provider.GetRequiredService<IEmployeeRepository>();
+        var request = await employeeRepository.GetDistinctEmployeesAsync();
+        stopWatch.Start();
+        await foreach (var employee in request)
         {
-            Console.WriteLine(
-                $"{employee.Name}  {employee.Lastname} {employee.Surname} {employee.Birthdate} {employee.Gender} {employee.GetAgeYears()} ");
+            Console.WriteLine($"{employee.Name}  {employee.Lastname} {employee.Surname}" +
+                              $" {employee.Birthdate}" +
+                              $" {employee.Gender}" +
+                              $" {employee.GetAge()}");
         }
-    }
-
-    private static Task Task5(IServiceProvider hostServices)
-    {
-        var empGenerator = hostServices.GetRequiredService<RandomGeneratorFactory>().CreateGenerator();
-        empGenerator.Generate();
-        return Task.CompletedTask;
-    }
-
-    private static Task Task4(IServiceProvider hostServices)
-    {
-        throw new NotImplementedException();
+        stopWatch.Stop();
+        TimeSpan ts = stopWatch.Elapsed;
+        string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+            ts.Hours, ts.Minutes, ts.Seconds,
+            ts.Milliseconds / 10);
+        Console.WriteLine("RunTime " + elapsedTime);
     }
 }

@@ -12,14 +12,13 @@ public class Employee
     public required DateTime Birthdate { get; init; }
     public required Gender Gender { get; init; }
 
-    public uint GetAgeYears()
+    public int GetAge()
     {
-        return (uint)(DateTime.Now.Year - Birthdate.Year);
+        return DateTime.Now.Year - Birthdate.Year;
     }
 
     public async Task InsertInDb(DbContext dbContext)
     {
-        
         dbContext.Add(this);
         await dbContext.SaveChangesAsync();
     }
