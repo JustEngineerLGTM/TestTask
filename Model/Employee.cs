@@ -6,15 +6,23 @@ public class Employee
 {
     
     public Guid Id { get; init; }
+    // Разделил ФИО на составляющие, т.к. это соответсвутет 1 нормальной форме БД.
     public required string Name { get; init; }
     public required string? Lastname { get; init; }
     public string? Surname { get; init; }
     public required DateTime Birthdate { get; init; }
     public required Gender Gender { get; init; }
 
+    /// <summary>
+    /// Функция вычисляет количество ПОЛНЫХ лет
+    /// </summary>
+    /// <returns>Количество полных лет</returns>
     public int GetAge()
     {
-        return DateTime.Now.Year - Birthdate.Year;
+        var age = DateTime.Today.Year - Birthdate.Year;
+        if (Birthdate.Date > DateTime.Today.AddYears(-age))
+            age--;
+        return age;
     }
 
     public async Task InsertInDb(DbContext dbContext)

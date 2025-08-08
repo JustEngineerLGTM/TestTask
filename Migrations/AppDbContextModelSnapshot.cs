@@ -35,7 +35,6 @@ namespace TestTask.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Lastname")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -46,6 +45,8 @@ namespace TestTask.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Gender", "Lastname");
 
                     b.ToTable("Employees");
                 });

@@ -12,7 +12,7 @@ using TestTask;
 namespace TestTask.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250807134235_Initial")]
+    [Migration("20250808100900_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -38,7 +38,6 @@ namespace TestTask.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Lastname")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -49,6 +48,8 @@ namespace TestTask.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Gender", "Lastname");
 
                     b.ToTable("Employees");
                 });

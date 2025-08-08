@@ -2,6 +2,7 @@
 
 public abstract class FullNames
 {
+    // Вспомогательный класс для генерации сотрудников
     public readonly static string[] FirstNames =
     [
         "Anatoly", "Boris", "Cyril", "Dmitry", "Evgeny", "Fyodor", "Gennady", "Hariton", "Ivan", "Juri",

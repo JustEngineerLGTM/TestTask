@@ -7,15 +7,19 @@ public class AppDbContext : DbContext
     {
     }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Employee>().HasIndex(employee => new
+        {
+            employee.Gender, employee.Lastname
+        });
+    }
+
     public AppDbContext(DbContextOptions options) : base(options)
     {
     }
 
     public DbSet<Employee> Employees { get; set; }
-    
-    public async Task InsertEmployee(IEnumerable<Employee> employee)
-    {
-        await AddRangeAsync(employee);
-        await SaveChangesAsync();
-    }
+
 }

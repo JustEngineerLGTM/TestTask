@@ -17,7 +17,7 @@ namespace TestTask.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Lastname = table.Column<string>(type: "text", nullable: false),
+                    Lastname = table.Column<string>(type: "text", nullable: true),
                     Surname = table.Column<string>(type: "text", nullable: true),
                     Birthdate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Gender = table.Column<int>(type: "integer", nullable: false)
@@ -26,6 +26,11 @@ namespace TestTask.Migrations
                 {
                     table.PrimaryKey("PK_Employees", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Employees_Gender_Lastname",
+                table: "Employees",
+                columns: new[] { "Gender", "Lastname" });
         }
 
         /// <inheritdoc />
