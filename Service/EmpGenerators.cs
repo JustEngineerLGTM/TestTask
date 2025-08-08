@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NodaTime;
 namespace TestTask.Service;
 
 public class EmpGenerators
@@ -17,7 +18,7 @@ public class EmpGenerators
             Name = FullNames.FirstNames[rnd.Next(0, FullNames.FirstNames.Length)],
             Lastname = FullNames.LastNames[rnd.Next(0, FullNames.LastNames.Length)],
             Surname = FullNames.SurNames[rnd.Next(0, FullNames.SurNames.Length)],
-            Birthdate = DateTime.Now.AddYears(-rnd.Next(18, 100)).AddDays(-rnd.Next(365)).ToUniversalTime(),
+            Birthdate = SystemClock.Instance.GetCurrentInstant().InUtc().Date.PlusYears(-rnd.Next(18, 100)).PlusDays(-rnd.Next(365)),
             Gender = (Gender)rnd.Next(1, 2)
         };
         return employee;
@@ -35,7 +36,7 @@ public class EmpGenerators
             Name = FullNames.FirstNames[rnd.Next(0, FullNames.FirstNames.Length)],
             Lastname = FullNames.LastNames.First(name => name[0] == firstChar),
             Surname = FullNames.SurNames[rnd.Next(0, FullNames.SurNames.Length)],
-            Birthdate = DateTime.Now.AddYears(-rnd.Next(18, 100)).AddDays(-rnd.Next(365)).ToUniversalTime(),
+            Birthdate = SystemClock.Instance.GetCurrentInstant().InUtc().Date.PlusYears(-rnd.Next(18, 100)).PlusDays(-rnd.Next(365)),
             Gender = gender,
         };
         return employee;

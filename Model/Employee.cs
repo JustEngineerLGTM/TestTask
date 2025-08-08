@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using NodaTime;
 namespace TestTask;
 
 public class Employee
@@ -10,19 +11,16 @@ public class Employee
     public required string Name { get; init; }
     public required string? Lastname { get; init; }
     public string? Surname { get; init; }
-    public required DateTime Birthdate { get; init; }
+    public required LocalDate Birthdate { get; init; }
     public required Gender Gender { get; init; }
 
     /// <summary>
     /// Функция вычисляет количество ПОЛНЫХ лет
     /// </summary>
     /// <returns>Количество полных лет</returns>
-    public int GetAge()
+    public Period GetAge()
     {
-        var age = DateTime.Today.Year - Birthdate.Year;
-        if (Birthdate.Date > DateTime.Today.AddYears(-age))
-            age--;
-        return age;
+        return SystemClock.Instance.GetCurrentInstant().InUtc().Date - Birthdate;
     }
 
     public async Task InsertInDb(DbContext dbContext)

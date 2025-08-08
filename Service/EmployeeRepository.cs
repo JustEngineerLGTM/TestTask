@@ -7,18 +7,19 @@ public class EmployeeRepository(IDbContextFactory<AppDbContext> contextFactory) 
     {
         await using var dbContext = await contextFactory.CreateDbContextAsync();
 
-        var employees = dbContext.Employees
-            .OrderBy(e => e.Lastname ?? string.Empty)
-            .ThenBy(e => e.Name)
-            .ThenBy(e => e.Surname ?? string.Empty)
-            .GroupBy(e => new
-            {
-                e.Name, e.Lastname, e.Surname, e.Birthdate
-            })
-            .Select(g => g.First())
+        var sql = """
+                  SELECT DISTINCT ON ("Lastname", "Name", "Surname", "Birthdate")
+                    "Id", "Birthdate", "Gender", "Lastname", "Name", "Surname"
+                  FROM "Employees"
+                  ORDER BY "Lastname", "Name", "Surname", "Birthdate", "Id";
+                  """;
+
+        var query = dbContext.Employees
+            .FromSqlRaw(sql)
+            .AsNoTracking()
             .AsAsyncEnumerable();
 
-        await foreach (var employee in employees)
+        await foreach (var employee in query)
         {
             yield return employee;
         }
@@ -29,6 +30,7 @@ public class EmployeeRepository(IDbContextFactory<AppDbContext> contextFactory) 
         await using var dbContext = await contextFactory.CreateDbContextAsync();
 
         var employees = dbContext.Employees
+            .AsNoTracking()
             .Where(e => e.Gender == Gender.Male && e.Lastname!.StartsWith("F"))
             .AsAsyncEnumerable();
 

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NodaTime;
 using TestTask.Service;
 
 namespace TestTask;
@@ -18,9 +19,9 @@ public static class Program
     public static async Task Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
-        builder.Services.AddDbContextFactory<AppDbContext>(s => s.UseNpgsql(ConnectionString));
+        builder.Services.AddDbContextFactory<AppDbContext>(s => s.UseNpgsql(ConnectionString, b => b.UseNodaTime()));
         builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-        builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
+        //builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
 
         var host = builder.Build();
         var task = args switch
@@ -71,7 +72,7 @@ public static class Program
             Lastname = splitName[0],
             Name = splitName[1],
             Surname = splitName[2],
-            Birthdate = Convert.ToDateTime(rest[1]).ToUniversalTime(),
+            Birthdate = LocalDate.FromDateOnly(DateOnly.Parse(rest[1])),
             Gender = Enum.Parse<Gender>(rest[2])
         };
         await employee.InsertInDb(dbContext);
@@ -91,7 +92,7 @@ public static class Program
             Console.WriteLine($"{employee.Lastname} {employee.Name} {employee.Surname} " +
                               $"\t{employee.Birthdate} " +
                               $"\t{employee.Gender} " +
-                              $"\t{employee.GetAge()}");
+                              $"\t{employee.GetAge().Years}");
         }
     }
 
@@ -128,16 +129,13 @@ public static class Program
         {
             Console.WriteLine($"{employee.Lastname} {employee.Name} {employee.Surname} " +
                               $"\t{employee.Birthdate} " +
-                              $"\t{employee.Gender} " +
-                              $"\t{employee.GetAge()}");
+                              $"\t{employee.Gender} ");
         }
 
         stopWatch.Stop();
         TimeSpan ts = stopWatch.Elapsed;
         // Форматируем формат времени, для красивого вывода
-        string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-            ts.Hours, ts.Minutes, ts.Seconds,
-            ts.Milliseconds / 10);
-        Console.WriteLine("RunTime " + elapsedTime);
+
+        Console.WriteLine("RunTime " + ts);
     }
 }
