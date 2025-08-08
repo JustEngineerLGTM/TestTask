@@ -62,9 +62,8 @@ public static class Program
     /// </summary>
     private static async Task Task2(string[] rest, IServiceProvider provider)
     {
-        var contextFactory = provider.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    
-        await using var dbContext = await contextFactory.CreateDbContextAsync();
+        var employeeRepository = provider.GetRequiredService<IEmployeeRepository>();
+        
 
         try
         {
@@ -77,7 +76,7 @@ public static class Program
                 Birthdate = LocalDate.FromDateOnly(DateOnly.Parse(rest[1])),
                 Gender = Enum.Parse<Gender>(rest[2])
             };
-            await employee.InsertInDb(dbContext);
+            await employeeRepository.InsertEmployee([employee]);
         }
         catch (Exception e)
         {
