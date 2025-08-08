@@ -63,19 +63,28 @@ public static class Program
     private static async Task Task2(string[] rest, IServiceProvider provider)
     {
         var contextFactory = provider.GetRequiredService<IDbContextFactory<AppDbContext>>();
-
+    
         await using var dbContext = await contextFactory.CreateDbContextAsync();
 
-        var splitName = rest[0].Split(" ");
-        var employee = new Employee
+        try
         {
-            Lastname = splitName[0],
-            Name = splitName[1],
-            Surname = splitName[2],
-            Birthdate = LocalDate.FromDateOnly(DateOnly.Parse(rest[1])),
-            Gender = Enum.Parse<Gender>(rest[2])
-        };
-        await employee.InsertInDb(dbContext);
+            var splitName = rest[0].Split(" ");
+            var employee = new Employee
+            {
+                Lastname = splitName[0],
+                Name = splitName[1],
+                Surname = splitName[2],
+                Birthdate = LocalDate.FromDateOnly(DateOnly.Parse(rest[1])),
+                Gender = Enum.Parse<Gender>(rest[2])
+            };
+            await employee.InsertInDb(dbContext);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Ошибка парсинга данных");
+            throw;
+        }
+       
     }
 
     /// <summary>
